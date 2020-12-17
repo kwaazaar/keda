@@ -1,7 +1,7 @@
 # Deploy cluster:
 AKSRG=playground-teamb-rg
 AKSNAME=kedatest
-az aks create --resource-group $AKSRG --name $AKSNAME --enable-cluster-autoscaler --min-count 1 --max-count 10 --node-count 1 --generate-ssh-keys
+az aks create --resource-group $AKSRG --name $AKSNAME --network-plugin azure --enable-cluster-autoscaler --min-count 1 --max-count 10 --node-count 1 --generate-ssh-keys
 az aks get-credentials -n $AKSNAME -g $AKSRG --admin
 # Quicker scale down
 az aks update \
@@ -14,4 +14,13 @@ spid=$(az aks show -g $AKSRG -n $AKSNAME --query servicePrincipalProfile.clientI
 noderg=$(az aks show -g $AKSRG -n $AKSNAME --query nodeResourceGroup -o tsv)
 subid=$(az account show --query id -o tsv)
 az role assignment create --role "Managed Identity Operator" --assignee $spid --scope /subscriptions/$subid/resourcegroups/$noderg
+az role assignment create --role "Virtual Machine Contributor" --assignee $spid --scope /subscriptions/$subid/resourcegroups/$noderg
+# az role assignment create --role "Managed Identity Operator" --assignee $spid --scope /subscriptions/$subid/resourcegroups/identities-ot-rg
 
+kubectl apply -f https://raw.githubusercontent.com/Azure/aad-pod-identity/v1.7.1/deploy/infra/deployment-rbac.yaml
+
+# Create identities on AAD...
+# Apply identity manifests from msi.yaml
+
+# Add aadpodidentity binding to Keda
+kubectl -n keda patch deployment keda --patch '{"spec": {"template": {"metadata": {"labels": {"aadpodidentity": "keda"}}}}}'

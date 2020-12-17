@@ -1,0 +1,42 @@
+# See scripts.txt!
+apiVersion: aadpodidentity.k8s.io/v1
+kind: AzureIdentity
+metadata:
+  annotations:
+    aadpodidentity.k8s.io/Behavior: namespaced
+  name: sbqueuetosql
+  namespace: sbqueuetosql
+spec:
+  clientID: 70dc6a40-88ee-4518-8410-e88697b8e827
+  resourceID: /subscriptions/7b520150-0df3-4adb-83b7-5646c7c62fef/resourcegroups/identities-ot-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/msi-development-sbqueuetosql
+  type: 0
+---
+apiVersion: aadpodidentity.k8s.io/v1
+kind: AzureIdentityBinding
+metadata:
+  name: sbqueuetosql-binding
+  namespace: sbqueuetosql
+spec:
+  azureIdentity: sbqueuetosql
+  selector: sbqueuetosql
+---
+apiVersion: aadpodidentity.k8s.io/v1
+kind: AzureIdentity
+metadata:
+  annotations:
+    aadpodidentity.k8s.io/Behavior: namespaced
+  name: keda
+  namespace: keda
+spec:
+  clientID: 70dc6a40-88ee-4518-8410-e88697b8e827
+  resourceID: /subscriptions/7b520150-0df3-4adb-83b7-5646c7c62fef/resourcegroups/identities-ot-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/msi-development-sbqueuetosql
+  type: 0
+---
+apiVersion: aadpodidentity.k8s.io/v1
+kind: AzureIdentityBinding
+metadata:
+  name: keda-binding
+  namespace: keda
+spec:
+  azureIdentity: keda
+  selector: keda
