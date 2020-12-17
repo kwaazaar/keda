@@ -1,0 +1,17 @@
+# Deploy cluster:
+AKSRG=playground-teamb-rg
+AKSNAME=kedatest
+az aks create --resource-group $AKSRG --name $AKSNAME --enable-cluster-autoscaler --min-count 1 --max-count 10 --node-count 1 --generate-ssh-keys
+az aks get-credentials -n $AKSNAME -g $AKSRG --admin
+# Quicker scale down
+az aks update \
+  --resource-group $AKSRG \
+  --name $AKSNAME \
+  --cluster-autoscaler-profile scale-down-delay-after-add=2m
+
+# Managed identity
+spid=$(az aks show -g $AKSRG -n $AKSNAME --query servicePrincipalProfile.clientId -o tsv)
+noderg=$(az aks show -g $AKSRG -n $AKSNAME --query nodeResourceGroup -o tsv)
+subid=$(az account show --query id -o tsv)
+az role assignment create --role "Managed Identity Operator" --assignee $spid --scope /subscriptions/$subid/resourcegroups/$noderg
+
